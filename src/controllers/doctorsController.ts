@@ -1,6 +1,6 @@
 import { Response } from 'express';
 import { CustomRequest } from '../interfaces/generalInterface';
-import { DoctorInterface, UpdateDoctorInterface } from '../interfaces/employeesInterface';
+import { CreateDoctorInterface, UpdateDoctorInterface } from '../interfaces/doctorsInterface';
 import { findAllDoctorsQuery, findOneDoctorQuery, createDoctorQuery, updateDoctorQuery, deleteDoctorQuery } from '../helpers/doctorHelpers';
 
 export const findAllDoctorsController = async (req: CustomRequest<{}, {}>, res: Response) => {
@@ -24,7 +24,7 @@ export const findAllDoctorsController = async (req: CustomRequest<{}, {}>, res: 
 
 export const findOneDoctorController = async (req: CustomRequest<{ id: string }, {}>, res: Response) => {
     try {
-        const { id } = req.query;
+        const { id } = req.params;
         const response = await findOneDoctorQuery(parseInt(id));
 
         return res.status(200).json({
@@ -42,7 +42,7 @@ export const findOneDoctorController = async (req: CustomRequest<{ id: string },
     }
 };
 
-export const createDoctorController = async (req: CustomRequest<{}, DoctorInterface>, res: Response) => {
+export const createDoctorController = async (req: CustomRequest<{}, CreateDoctorInterface>, res: Response) => {
     try {
         const body = req.body;
         const headers = req.headers;
@@ -87,11 +87,33 @@ export const updateDoctorController = async (req: CustomRequest<{}, UpdateDoctor
 };
 
 export const deleteDoctorController = async (req: CustomRequest<{}, { id: number }>, res: Response) => {
-    try {
+    try {      
         const { id } = req.body;
         const headers = req.headers;
         let id_usuario = headers['x-access-id-user'] ?? '-1';
-        const response = await deleteDoctorQuery(id, parseInt(id_usuario));
+        const response = await deleteDoctorQuery(id, parseInt(id_usuario), true);
+
+        return res.status(200).json({
+            ok: true,
+            msg: "Doctor deleted was successfully.",
+            data: response
+        });
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({
+            ok: false,
+            error: error,
+            msg: "Error to delete doctor."
+        });
+    }
+};
+
+export const restoreDoctorController = async (req: CustomRequest<{}, { id: number }>, res: Response) => {
+    try {      
+        const { id } = req.body;
+        const headers = req.headers;
+        let id_usuario = headers['x-access-id-user'] ?? '-1';
+        const response = await deleteDoctorQuery(id, parseInt(id_usuario), false);
 
         return res.status(200).json({
             ok: true,

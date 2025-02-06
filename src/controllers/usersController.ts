@@ -24,7 +24,7 @@ export const findAllUsersController = async (req: CustomRequest<{}, {}>, res: Re
 
 export const findOneUserController = async (req: CustomRequest<{ id_usuario: string }, {}>, res: Response) => {
     try {
-        const { id_usuario } = req.query;
+        const { id_usuario } = req.params;
         const response = await findOneUserQuery(parseInt(id_usuario));
 
         return res.status(200).json({

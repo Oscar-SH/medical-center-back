@@ -7,7 +7,10 @@ import { UpdateUserInterface, UserInterface } from '../interfaces/usersInterface
 export const findAllUsersQuery = () => {
     return new Promise(async (resolve, reject) => {
         try {
-            const users = await knexMedical('users').select().whereNull('deleted_at');
+            const users = await knexMedical('users as u').select(
+                'u.*',
+            )
+            .whereNull('deleted_at');
             resolve(users);
         } catch (error) {
             console.error(error);

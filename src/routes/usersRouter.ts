@@ -4,7 +4,7 @@ import { createUserController, deleteUserController, findAllUsersController, fin
 const router: Router = Router();
 
 router.get('/', findAllUsersController);
-router.get('/find', findOneUserController);
+router.get('/:id', findOneUserController);
 
 router.post('/', createUserController);
 
