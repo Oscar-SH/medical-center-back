@@ -1,16 +1,21 @@
 import { Router } from 'express';
-import { findAllPersonsController, findOnePersonController, createPersonController, updatePersonController, deletePersonController } from '../controllers/personController';
+import {
+    findAllPersonsController,
+    findOnePersonController,
+    createPersonController,
+    updatePersonController,
+    deletePersonController,
+    restorePersonController
+} from '../controllers/personController';
 
 
 const router: Router = Router();
 
 router.get('/', findAllPersonsController);
-router.get('/find', findOnePersonController);
-
+router.get('/:id', findOnePersonController);
 router.post('/', createPersonController);
-
 router.put('/', updatePersonController);
-
 router.delete('/', deletePersonController);
+router.patch('/', restorePersonController);
 
 export default router;

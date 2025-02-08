@@ -2,13 +2,39 @@ import { Knex } from 'knex';
 import moment from 'moment';
 import { knexMedical } from '../utils/dbKnex';
 // import { setRegistroBitacora } from './bitacoraHelper';
-import { PersonInterface, ReponsePersonInterface, UpdatePersonInterface } from '../interfaces/personsInterface';
+import { ParamsPersonInterface, PersonInterface, ReponsePersonInterface, ResponsePersonTableInterface, UpdatePersonInterface } from '../interfaces/personsInterface';
 
-export const findAllPersonsQuery = () => {
-    return new Promise(async (resolve, reject) => {
+export const findAllPersonsQuery = ({
+    text = '',
+    page = '1',
+    page_size = '10',
+    isActives = 'true'
+}: ParamsPersonInterface) => {
+    return new Promise<ResponsePersonTableInterface>(async (resolve, reject) => {
         try {
-            const users = await knexMedical('cmp_persons').select().whereNull('deleted_at');
-            resolve(users);
+            const lastRow = (parseInt(page) - 1) * parseInt(page_size);
+            let query = knexMedical('cmp_persons').select();
+            let query_count = knexMedical('cmp_persons').select();
+
+            if (text) {
+                const sentence = "CONCAT_WS(' ', second_surname, first_surname, fullname)"
+                query = query.where(knexMedical.raw(sentence), 'LIKE', `%${text}%`);
+                query_count = query_count.where(knexMedical.raw(sentence), 'LIKE', `%${text}%`);
+            }
+
+            if (isActives === 'true') {
+                query = query.whereNull('deleted_at');
+                query_count = query_count.whereNull('deleted_at');
+
+            } else {
+                query = query.whereNotNull('deleted_at');
+                query_count = query_count.whereNotNull('deleted_at');
+            }
+
+            const [count] = await query_count.count('id as total');
+            const data = await query.limit(parseInt(page_size)).offset(lastRow);
+
+            resolve({ data, count: parseInt(String(count.total)) });
         } catch (error) {
             console.error(error);
             reject(error);
@@ -71,7 +97,7 @@ export const updatePersonQuery = (data: UpdatePersonInterface, id_usuario: numbe
                         fullname: data.fullname,
                         first_surname: data.first_surname,
                         second_surname: data.second_surname,
-                        birthdate: data.birthdate,
+                        birthdate: moment(data.birthdate).format('YYYY-MM-DD'),
                         curp: data.curp,
                         rfc: data.rfc,
                         sex: data.sex,
@@ -91,13 +117,16 @@ export const updatePersonQuery = (data: UpdatePersonInterface, id_usuario: numbe
     });
 };
 
-export const deletePersonQuery = (id: number, id_usuario: number) => {
+export const changeStatusPersonQuery = (id: number, id_usuario: number, is_delete: boolean) => {
     return new Promise(async (resolve, reject) => {
         try {
-            // await knexMedical.transaction(async (trx: Knex.Transaction) => {
-            //     await trx('cmp_persons').where('id', '=', id).update({ deleted_at: moment().format('YYYY-MM-DD HH:mm:ss') }).transacting(trx);
-            // });
-            resolve(id);
+            await knexMedical.transaction(async (trx: Knex.Transaction) => {
+                await trx('cmp_persons').where('id', '=', id)
+                    .update({ deleted_at: is_delete ? moment().format('YYYY-MM-DD') : null })
+                    .transacting(trx);
+            });
+            const response = await findOnePersonQuery(id);
+            resolve(response);
         } catch (error) {
             console.error(error);
             reject(error);

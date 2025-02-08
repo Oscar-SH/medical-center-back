@@ -1,16 +1,18 @@
 import { Response } from 'express';
 import { CustomRequest } from '../interfaces/generalInterface';
-import { PersonInterface, UpdatePersonInterface } from '../interfaces/personsInterface';
-import { createPersonQuery, deletePersonQuery, findAllPersonsQuery, findOnePersonQuery, updatePersonQuery } from '../helpers/personHelpers';
+import { ParamsPersonInterface, PersonInterface, UpdatePersonInterface } from '../interfaces/personsInterface';
+import { createPersonQuery, changeStatusPersonQuery, findAllPersonsQuery, findOnePersonQuery, updatePersonQuery } from '../helpers/personHelpers';
 
-export const findAllPersonsController = async (req: CustomRequest<{}, {}>, res: Response) => {
+export const findAllPersonsController = async (req: CustomRequest<ParamsPersonInterface, {}>, res: Response) => {
     try {
-        const response = await findAllPersonsQuery();
+        const params = req.query;
+        const { count, data } = await findAllPersonsQuery(params);
 
         return res.status(200).json({
             ok: true,
             msg: "Find all persons was successfully.",
-            data: response
+            data,
+            count
         });
     } catch (error) {
         console.log(error);
@@ -24,7 +26,7 @@ export const findAllPersonsController = async (req: CustomRequest<{}, {}>, res: 
 
 export const findOnePersonController = async (req: CustomRequest<{ id: string }, {}>, res: Response) => {
     try {
-        const { id } = req.query;
+        const { id } = req.params;
         const response = await findOnePersonQuery(parseInt(id));
 
         return res.status(200).json({
@@ -91,7 +93,7 @@ export const deletePersonController = async (req: CustomRequest<{}, { id: number
         const { id } = req.body;
         const headers = req.headers;
         let id_usuario = headers['x-access-id-user'] ?? '-1';
-        const response = await deletePersonQuery(id, parseInt(id_usuario));
+        const response = await changeStatusPersonQuery(id, parseInt(id_usuario), true);
 
         return res.status(200).json({
             ok: true,
@@ -104,6 +106,28 @@ export const deletePersonController = async (req: CustomRequest<{}, { id: number
             ok: false,
             error: error,
             msg: "Error to delete person."
+        });
+    }
+};
+
+export const restorePersonController = async (req: CustomRequest<{}, { id: number }>, res: Response) => {
+    try {
+        const { id } = req.body;
+        const headers = req.headers;
+        let id_usuario = headers['x-access-id-user'] ?? '-1';
+        const response = await changeStatusPersonQuery(id, parseInt(id_usuario), false);
+
+        return res.status(200).json({
+            ok: true,
+            msg: "Person restored was successfully.",
+            data: response
+        });
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({
+            ok: false,
+            error: error,
+            msg: "Error to restore person."
         });
     }
 };

@@ -19,3 +19,15 @@ export interface ReponsePersonInterface extends PersonInterface {
     updated_at: string;
     deleted_at?: string;
 }
+
+export interface ParamsPersonInterface{
+    page: string;
+    text: string;
+    isActives: string;
+    page_size: string;
+}
+
+export interface ResponsePersonTableInterface{
+    count: number;
+    data: ReponsePersonInterface[];
+}
