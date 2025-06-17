@@ -1,7 +1,7 @@
 require('colors');
 require('dotenv').config();
 
-import Server from './models/Server';
+import Server from './Models/Server';
 
 const server = new Server();
 
