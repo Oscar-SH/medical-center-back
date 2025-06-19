@@ -1,10 +1,10 @@
 import { Knex } from 'knex';
 import moment from 'moment';
 import { knexMedical } from '../../Utils/dbKnex';
-import { ParamsPermissionsInterface, PermissionInterface, ResponsePermissionTableInterface, RowPermissionInterface, UpdatePermissionInterface } from '../../Interfaces';
 import { RegistroBitacora } from '../../Classes/bitacoraClass';
+import { ParamsPermissionsInterface, PermissionInterface, ResponsePermissionTableInterface, RowPermissionInterface, UpdatePermissionInterface } from '../../Interfaces';
 
-export const findAllPermissionsQuery = ({
+export const getAllPermissionsQuery = ({
     text = '',
     page = '1',
     page_size = '10'
@@ -17,9 +17,10 @@ export const findAllPermissionsQuery = ({
             if (text.length > 0) query = query.where('name', 'LIKE', `%${text}%`);
 
             const [count] = await query.clone().count('id as total');
-            const data = parseInt(page_size) === 0 ?
-                await query.clone() : await query.clone().limit(parseInt(page_size)).offset(lastRow);
-            resolve({ data, count: parseInt(String(count.total)) });
+            const data = parseInt(page_size) === 0
+                ? await query.clone().whereNull('deleted_at')
+                : await query.clone().limit(parseInt(page_size)).offset(lastRow).whereNull('deleted_at');
+            resolve({ data, count: parseInt(`${count.total}`) });
         } catch (error) {
             console.error(error);
             reject(error);

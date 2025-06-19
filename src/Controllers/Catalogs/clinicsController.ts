@@ -1,15 +1,15 @@
 import { Response } from 'express';
-import { CustomRequest, ParamsRoleInterface, RoleInterface, UpdateRoleInterface } from '../../Interfaces';
-import { createRoleQuery, deleteRoleQuery, getAllRolesQuery, findRoleQuery, updateRoleQuery } from '../../Services';
+import { CatClinicsInterface, CustomRequest, ParamsCatClinicInterface, UpdateCatClinicsInterface } from '../../Interfaces';
+import { getAllClinicsQuery, findClinicQuery, createClinicQuery, updateClinicQuery, deleteClinicQuery } from '../../Services';
 
-export const findAllRolesController = async (req: CustomRequest<ParamsRoleInterface, {}>, res: Response) => {
+export const getAllClinicsQueryController = async (req: CustomRequest<ParamsCatClinicInterface, {}>, res: Response) => {
     try {
         const params = req.query;
-        const { data, count } = await getAllRolesQuery(params);
+        const { data, count } = await getAllClinicsQuery(params);
 
         return res.status(200).json({
             ok: true,
-            msg: "Find all roles was successfully.",
+            msg: "Find clinic was successfully.",
             data,
             count
         });
@@ -18,61 +18,39 @@ export const findAllRolesController = async (req: CustomRequest<ParamsRoleInterf
         return res.status(500).json({
             ok: false,
             error: error,
-            msg: "Can't find all roles."
+            msg: "Can't find clinics."
         });
     }
 };
 
-export const findOneRoleController = async (req: CustomRequest<{}, {}>, res: Response) => {
+export const findClinicController = async (req: CustomRequest<{}, {}>, res: Response) => {
     try {
-        const { id } = req.params;
-        const response = await findRoleQuery(parseInt(id));
+        const data = await findClinicQuery(parseInt(req.params.id ?? '0'));
 
         return res.status(200).json({
             ok: true,
-            msg: "Find role was successfully.",
-            data: response
+            msg: "Find clinic was successfully.",
+            data
         });
     } catch (error) {
         console.log(error);
         return res.status(500).json({
             ok: false,
             error: error,
-            msg: "Can't find role."
+            msg: "Can't find clinic."
         });
     }
 };
 
-export const createRoleController = async (req: CustomRequest<{}, RoleInterface>, res: Response) => {
-    try {
-        const body = req.body;
-        const jwt = req.header('x-access-jwt') ?? '';
-        const response = await createRoleQuery(body, jwt);
-
-        return res.status(200).json({
-            ok: true,
-            msg: "Role created was successfully.",
-            data: response
-        });
-    } catch (error) {
-        console.log(error);
-        return res.status(500).json({
-            ok: false,
-            error: error,
-            msg: "Error to create role."
-        });
-    }
-};
-
-export const updateRoleController = async (req: CustomRequest<{}, UpdateRoleInterface>, res: Response) => {
+export const createClinicController = async (req: CustomRequest<{}, CatClinicsInterface>, res: Response) => {
     try {
         const body = req.body;
         const jwt = req.header('x-access-jwt') ?? '';
-        const response = await updateRoleQuery(body, jwt);
+        const response = await createClinicQuery(body, jwt);
 
         return res.status(200).json({
             ok: true,
-            msg: "Role updated was successfully.",
+            msg: "Clinic created was successfully.",
             data: response
         });
     } catch (error) {
@@ -80,20 +58,41 @@ export const updateRoleController = async (req: CustomRequest<{}, UpdateRoleInte
         return res.status(500).json({
             ok: false,
             error: error,
-            msg: "Error to update role."
+            msg: "Error to create clinic."
         });
     }
 };
 
-export const deleteRoleController = async (req: CustomRequest<{}, { id: number }>, res: Response) => {
+export const updateClinicController = async (req: CustomRequest<{}, UpdateCatClinicsInterface>, res: Response) => {
+    try {
+        const body = req.body;
+        const jwt = req.header('x-access-jwt') ?? '';
+        const response = await updateClinicQuery(body, jwt);
+
+        return res.status(200).json({
+            ok: true,
+            msg: "Clinic updated was successfully.",
+            data: response
+        });
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({
+            ok: false,
+            error: error,
+            msg: "Error to update clinic."
+        });
+    }
+};
+
+export const deleteClinicController = async (req: CustomRequest<{}, { id: number }>, res: Response) => {
     try {
         const { id } = req.body;
         const jwt = req.header('x-access-jwt') ?? '';
-        const response = await deleteRoleQuery(id, jwt);
+        const response = await deleteClinicQuery(id, jwt);
 
         return res.status(200).json({
             ok: true,
-            msg: "Role deleted was successfully.",
+            msg: "Clinic deleted was successfully.",
             data: response
         });
     } catch (error) {
@@ -101,7 +100,7 @@ export const deleteRoleController = async (req: CustomRequest<{}, { id: number }
         return res.status(500).json({
             ok: false,
             error: error,
-            msg: "Error to delete role."
+            msg: "Error to delete clinic."
         });
     }
 };

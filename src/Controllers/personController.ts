@@ -46,9 +46,8 @@ export const findOnePersonController = async (req: CustomRequest<{ id: string },
 export const createPersonController = async (req: CustomRequest<{}, PersonInterface>, res: Response) => {
     try {
         const body = req.body;
-        const headers = req.headers;
-        let id_usuario = headers['x-access-id-user'] ?? '-1';
-        const response = await createPersonQuery(body, parseInt(id_usuario));
+        const jwt = req.header('x-access-jwt') ?? '';
+        const response = await createPersonQuery(body, jwt);
 
         return res.status(200).json({
             ok: true,
@@ -68,9 +67,8 @@ export const createPersonController = async (req: CustomRequest<{}, PersonInterf
 export const updatePersonController = async (req: CustomRequest<{}, UpdatePersonInterface>, res: Response) => {
     try {
         const body = req.body;
-        const headers = req.headers;
-        let id_usuario = headers['x-access-id-user'] ?? '-1';
-        const response = await updatePersonQuery(body, parseInt(id_usuario));
+        const jwt = req.header('x-access-jwt') ?? '';
+        const response = await updatePersonQuery(body, jwt);
 
         return res.status(200).json({
             ok: true,
@@ -90,9 +88,8 @@ export const updatePersonController = async (req: CustomRequest<{}, UpdatePerson
 export const deletePersonController = async (req: CustomRequest<{}, { id: number }>, res: Response) => {
     try {
         const { id } = req.body;
-        const headers = req.headers;
-        let id_usuario = headers['x-access-id-user'] ?? '-1';
-        const response = await changeStatusPersonQuery(id, parseInt(id_usuario), true);
+        const jwt = req.header('x-access-jwt') ?? '';
+        const response = await changeStatusPersonQuery(id, jwt, true);
 
         return res.status(200).json({
             ok: true,
@@ -112,9 +109,8 @@ export const deletePersonController = async (req: CustomRequest<{}, { id: number
 export const restorePersonController = async (req: CustomRequest<{}, { id: number }>, res: Response) => {
     try {
         const { id } = req.body;
-        const headers = req.headers;
-        let id_usuario = headers['x-access-id-user'] ?? '-1';
-        const response = await changeStatusPersonQuery(id, parseInt(id_usuario), false);
+        const jwt = req.header('x-access-jwt') ?? '';
+        const response = await changeStatusPersonQuery(id, jwt, false);
 
         return res.status(200).json({
             ok: true,

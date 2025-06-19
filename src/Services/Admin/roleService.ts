@@ -5,7 +5,7 @@ import { RegistroBitacora } from '../../Classes/bitacoraClass';
 import { createRolePermissionQuery, deleteRolePermissionQuery, findRolePermissionQuery, updateRolePermissionQuery } from '..';
 import { ParamsRoleInterface, ResponseRoleTableInterface, RoleInterface, RowRoleInterface, UpdateRoleInterface } from '../../Interfaces';
 
-export const findAllRolesQuery = ({
+export const getAllRolesQuery = ({
     text = '',
     page = '1',
     page_size = '10'
@@ -17,7 +17,9 @@ export const findAllRolesQuery = ({
             let query = knexMedical('roles');
             if (text.length > 0) query = query.where('name', 'LIKE', `%${text}%`);
             const [count] = await query.clone().count('id as total');
-            let data = await query.clone().limit(parseInt(page_size)).offset(lastRow);
+            let data = parseInt(page_size) === 0
+                ? await query.clone().whereNull('deleted_at')
+                : await query.clone().limit(parseInt(page_size)).offset(lastRow).whereNull('deleted_at');
             for (let row of data) {
                 row['permissions'] = await findRolePermissionQuery(row.id);
                 response.push(row);

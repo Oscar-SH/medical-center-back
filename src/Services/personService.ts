@@ -1,7 +1,7 @@
 import { Knex } from 'knex';
 import moment from 'moment';
 import { knexMedical } from '../Utils/dbKnex';
-// import { setRegistroBitacora } from './bitacoraHelper';
+import { RegistroBitacora } from '../Classes/bitacoraClass';
 import { ParamsPersonInterface, PersonInterface, ReponsePersonInterface, ResponsePersonTableInterface, UpdatePersonInterface } from '../Interfaces';
 
 export const findAllPersonsQuery = ({
@@ -52,7 +52,7 @@ export const findOnePersonQuery = (id: number = -1) => {
     });
 };
 
-export const createPersonQuery = (data: PersonInterface, id_usuario: number) => {
+export const createPersonQuery = (data: PersonInterface, jwt: string) => {
     return new Promise<ReponsePersonInterface | null>(async (resolve, reject) => {
         try {
             let new_id = 0;
@@ -71,10 +71,13 @@ export const createPersonQuery = (data: PersonInterface, id_usuario: number) => 
                         updated_at: moment().format('YYYY-MM-DD')
                     }).transacting(trx);
                 } catch (error) {
-                    trx.rollback();
-                    console.log(error);
+                    console.error('Error in create person:', error);
+                    throw error;
                 }
             });
+
+            const bitacora = new RegistroBitacora('PERSONAS', 'CREAR PERSONA', `PERSONA CREADA CON ID ${new_id}`, jwt);
+            await bitacora.insert();
 
             const response = await findOnePersonQuery(new_id);
 
@@ -86,13 +89,12 @@ export const createPersonQuery = (data: PersonInterface, id_usuario: number) => 
     });
 };
 
-export const updatePersonQuery = (data: UpdatePersonInterface, id_usuario: number) => {
+export const updatePersonQuery = (data: UpdatePersonInterface, jwt: string) => {
     return new Promise<ReponsePersonInterface | null>(async (resolve, reject) => {
         try {
-            let new_id = 0;
             await knexMedical.transaction(async (trx: Knex.Transaction) => {
                 try {
-                    new_id = await trx('cmp_persons').where('id', '=', data.id).update({
+                    await trx('cmp_persons').where('id', '=', data.id).update({
                         fullname: data.fullname,
                         first_surname: data.first_surname,
                         second_surname: data.second_surname,
@@ -104,11 +106,13 @@ export const updatePersonQuery = (data: UpdatePersonInterface, id_usuario: numbe
                         updated_at: moment().format('YYYY-MM-DD')
                     }).transacting(trx);
                 } catch (error) {
-                    trx.rollback();
-                    console.log(error);
+                    console.error('Error in update person:', error);
+                    throw error;
                 }
             });
-            const response = await findOnePersonQuery(new_id);
+            const bitacora = new RegistroBitacora('PERSONAS', 'EDITAR PERSONA', `PERSONA EDITADA CON ID ${data.id}`, jwt);
+            await bitacora.insert();
+            const response = await findOnePersonQuery(data.id);
             resolve(response);
         } catch (error) {
             console.error(error);
@@ -117,14 +121,21 @@ export const updatePersonQuery = (data: UpdatePersonInterface, id_usuario: numbe
     });
 };
 
-export const changeStatusPersonQuery = (id: number, id_usuario: number, is_delete: boolean) => {
+export const changeStatusPersonQuery = (id: number, jwt: string, is_delete: boolean) => {
     return new Promise(async (resolve, reject) => {
         try {
             await knexMedical.transaction(async (trx: Knex.Transaction) => {
-                await trx('cmp_persons').where('id', '=', id)
-                    .update({ deleted_at: is_delete ? moment().format('YYYY-MM-DD') : null })
-                    .transacting(trx);
+                try {
+                    await trx('cmp_persons').where('id', '=', id)
+                        .update({ deleted_at: is_delete ? moment().format('YYYY-MM-DD') : null })
+                        .transacting(trx);
+                } catch (error) {
+                    console.error('Error in change status person:', error);
+                    throw error;
+                }
             });
+            const bitacora = new RegistroBitacora('PERSONAS', `${is_delete ? 'ELIMINAR' : 'RECUPERAR'} PERSONA`, `PERSONA ${is_delete ? 'ELIMINADA' : 'RECUPERADA'} CON ID ${id}`, jwt);
+            await bitacora.insert();
             const response = await findOnePersonQuery(id);
             resolve(response);
         } catch (error) {

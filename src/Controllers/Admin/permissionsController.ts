@@ -1,11 +1,11 @@
 import { Response } from 'express';
 import { CustomRequest, ParamsPermissionsInterface, PermissionInterface, UpdatePermissionInterface } from '../../Interfaces';
-import { createPermissionQuery, deletePermissionQuery, findAllPermissionsQuery, findPermissionQuery, updatePermissionQuery } from '../../Services';
+import { createPermissionQuery, getAllPermissionsQuery, findPermissionQuery, updatePermissionQuery, deletePermissionQuery } from '../../Services';
 
 export const findAllPermissionsController = async (req: CustomRequest<ParamsPermissionsInterface, {}>, res: Response) => {
     try { 
         const params = req.query;
-        const { data, count } = await findAllPermissionsQuery(params);
+        const { data, count } = await getAllPermissionsQuery(params);
 
         return res.status(200).json({
             ok: true,

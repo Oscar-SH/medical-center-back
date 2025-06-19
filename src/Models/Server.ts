@@ -11,6 +11,8 @@ import { verifyToken } from '../Helpers/authHelper';
 import https, { Server as HTTPSServer } from 'https';
 import rolesRouter from '../Routes/Admin/rolesRouter';
 import usersRouter from '../Routes/Admin/usersRouter';
+import clinicsRouter from '../Routes/Catalogs/clinicsRouter';
+import catalogsRouter from '../Routes/Catalogs/catalogsRouter';
 import permissionsRouter from '../Routes/Admin/permissionsRouter';
 
 class Server {
@@ -36,7 +38,9 @@ class Server {
         this.app.use('/', authRouter);
         this.app.use('/roles', verifyToken, rolesRouter);
         this.app.use('/users', verifyToken, usersRouter);
+        this.app.use('/cat', verifyToken, catalogsRouter);
         this.app.use('/persons', verifyToken, personRouter);
+        this.app.use('/clinics', verifyToken, clinicsRouter);
         this.app.use('/doctors', verifyToken, doctorsRouter);
         this.app.use('/permissions', verifyToken, permissionsRouter);
     };
