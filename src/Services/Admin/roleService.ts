@@ -2,7 +2,7 @@ import { Knex } from 'knex';
 import moment from 'moment';
 import { knexMedical } from '../../Utils/dbKnex';
 import { RegistroBitacora } from '../../Classes/bitacoraClass';
-import { createRolePermissionQuery, deleteRolePermissionQuery, findRolePermissionQuery, updateRolePermissionQuery } from '..';
+import { createRolePermissionQuery, updateRolePermissionQuery, findRolePermissionQuery, setRolePermissionQuery } from '..';
 import { ParamsRoleInterface, ResponseRoleTableInterface, RoleInterface, RowRoleInterface, UpdateRoleInterface } from '../../Interfaces';
 
 export const getAllRolesQuery = ({
@@ -57,7 +57,7 @@ export const createRoleQuery = (data: RoleInterface, jwt: string) => {
                         updated_at: moment().format('YYYY-MM-DD HH:mm:ss')
                     });
                     for (let permission of data.permissions) {
-                        await createRolePermissionQuery(jwt, trx, { id_permission: permission.id, id_role: new_id });
+                        await createRolePermissionQuery({ id_permission: permission.id, id_role: new_id }, trx, jwt);
                     }
                 } catch (error) {
                     console.error('Error en create rol:', error);
@@ -83,7 +83,7 @@ export const updateRoleQuery = (data: UpdateRoleInterface, jwt: string) => {
                         name: data.name,
                         updated_at: moment().format('YYYY-MM-DD HH:mm:ss')
                     }).transacting(trx);
-                    await updateRolePermissionQuery(jwt, trx, data.id, data.permissions);
+                    await setRolePermissionQuery(jwt, trx, data.id, data.permissions);
                 } catch (error) {
                     console.error('Error en update role:', error);
                     throw error;
@@ -109,7 +109,7 @@ export const deleteRoleQuery = (id: number, jwt: string) => {
                     }).transacting(trx);
                     const permissions = await knexMedical('role_permissions').where('id_role', '=', id);
                     for (const permission of permissions) {
-                        await deleteRolePermissionQuery(jwt, trx, { id_permission: permission.id_permission, id_role: id });
+                        await updateRolePermissionQuery({ id_permission: permission.id_permission, id_role: id, deleted_at: moment().format('YYYY-MM-DD HH:mm:ss') }, trx, jwt);
                     }
                 } catch (error) {
                     console.error('Error en delete role:', error);

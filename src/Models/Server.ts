@@ -37,9 +37,11 @@ class Server {
         this.app.use(cors({ origin: '*' }));
         this.app.use('/', authRouter);
         this.app.use('/roles', verifyToken, rolesRouter);
+        // this.app.use('/users', usersRouter);
         this.app.use('/users', verifyToken, usersRouter);
         this.app.use('/cat', verifyToken, catalogsRouter);
         this.app.use('/persons', verifyToken, personRouter);
+        // this.app.use('/clinics', clinicsRouter);
         this.app.use('/clinics', verifyToken, clinicsRouter);
         this.app.use('/doctors', verifyToken, doctorsRouter);
         this.app.use('/permissions', verifyToken, permissionsRouter);

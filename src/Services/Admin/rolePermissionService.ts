@@ -18,7 +18,7 @@ export const findRolePermissionQuery = (id_role: number = -1) => {
     });
 };
 
-export const createRolePermissionQuery = async (jwt: string, trx: Knex.Transaction, data: RolePermissionInterface) => {
+export const createRolePermissionQuery = async (data: RolePermissionInterface, trx: Knex.Transaction, jwt: string) => {
     let new_id = 0;
     [new_id] = await trx('role_permissions').insert({
         id_permission: data.id_permission,
@@ -30,23 +30,31 @@ export const createRolePermissionQuery = async (jwt: string, trx: Knex.Transacti
     await bitacora.insert();
 };
 
-export const updateRolePermissionQuery = (jwt: string, trx: Knex.Transaction, id_role: number, data: RowPermissionInterface[]) => {
+export const updateRolePermissionQuery = async (data: { id_permission: number, id_role: number, deleted_at: string | null }, trx: Knex.Transaction, jwt: string) => {
+    let id_response = await trx('role_permissions')
+        .where({ id_role: data.id_role, id_permission: data.id_permission })
+        .update({ deleted_at: data.deleted_at, updated_at: moment().format('YYYY-MM-DD HH:mm:ss') });
+    const bitacora = new RegistroBitacora(
+        'ROL-PERMISO', `${data.deleted_at ? 'ELIMINAR' : 'RECUPERAR'} ROL-PERMISO`, `ROL-PERMISO ${data.deleted_at ? 'ELIMINADO' : 'RECUPERADO'} CON ID ${id_response}`,
+        jwt
+    );
+    await bitacora.insert();
+};
+
+export const setRolePermissionQuery = (jwt: string, trx: Knex.Transaction, id_role: number, data: RowPermissionInterface[]) => {
     return new Promise(async (resolve, reject) => {
         try {
             const newPermissionIds = data.map(p => p.id);
             const last_permissions = await knexMedical('role_permissions').where('id_role', '=', id_role);
             try {
-                for (const permission of data) {
-                    const exist = last_permissions.find((last) => last.id_permission === permission.id);
-                    if (!exist) {
-                        await createRolePermissionQuery(jwt, trx, { id_permission: permission.id, id_role: id_role });
-                    } else if (exist.deleted_at) {
-                        await restoreRolePermissionQuery(jwt, trx, { id_permission: permission.id, id_role: id_role });
-                    }
-                }
                 for (const last of last_permissions) {
-                    if (last.deleted_at === null && !newPermissionIds.includes(last.id_permission))
-                        await deleteRolePermissionQuery(jwt, trx, { id_permission: last.id_permission, id_role: id_role });
+                    const exist = newPermissionIds.includes(last.id_permission);
+                    await updateRolePermissionQuery({ id_permission: last.id_permission, id_role: id_role, deleted_at: exist ? null : moment().format('YYYY-MM-DD HH:mm:ss') }, trx, jwt);
+                }
+
+                for (const permission of newPermissionIds) {
+                    const alreadyExists = last_permissions.find(p => p.id_permission === permission);
+                    if (!alreadyExists) await createRolePermissionQuery({ id_permission: permission, id_role: id_role }, trx, jwt);
                 }
             } catch (error) {
                 console.error(error, 'Error en update role permission.');
@@ -61,25 +69,22 @@ export const updateRolePermissionQuery = (jwt: string, trx: Knex.Transaction, id
         }
     });
 };
+//     return new Promise(async (resolve, reject) => {
+//         try {
+//             const last_permissions = await knexMedical('role_permissions').where('id_role', '=', id_role);
+//             for (const last of last_permissions) {
+//                 const exist = data.permissions.includes(last.id_permission);
+//                 await updateRolePermissionQuery({ id: last.id, deleted_at: exist ? null : moment().format('YYYY-MM-DD HH:mm:ss') }, trx, jwt);
+//             }
 
-export const deleteRolePermissionQuery = async (jwt: string, trx: Knex.Transaction, data: RolePermissionInterface) => {
-    let id_pivot = await trx('role_permissions')
-        .where({ id_role: data.id_role, id_permission: data.id_permission })
-        .update({
-            deleted_at: moment().format('YYYY-MM-DD HH:mm:ss'),
-            updated_at: moment().format('YYYY-MM-DD HH:mm:ss')
-        });
-    const bitacora = new RegistroBitacora('ROL-PERMISO', 'ELIMINAR PERMISO-ROL', `PERMISO-ROL ELIMINADO CON ID ${id_pivot}`, jwt);
-    await bitacora.insert();
-};
-
-export const restoreRolePermissionQuery = async (jwt: string, trx: Knex.Transaction, data: RolePermissionInterface) => {
-    let id_pivot = await trx('role_permissions')
-        .where({ id_role: data.id_role, id_permission: data.id_permission })
-        .update({
-            deleted_at: null,
-            updated_at: moment().format('YYYY-MM-DD HH:mm:ss')
-        });
-    const bitacora = new RegistroBitacora('ROL-PERMISO', 'RECUPERAR PERMISO-ROL', `PERMISO-ROL RECUPERADO CON ID ${id_pivot}`, jwt);
-    await bitacora.insert();
-};
+//             for (const permission of data) {
+//                 const alreadyExists = last_permissions.find(p => p.id_permission === permission);
+//                 if (!alreadyExists) await createRolePermissionQuery({ id_permission: permission.id, id_role: id_role }, trx, jwt);
+//             }
+//             resolve(true);
+//         } catch (error) {
+//             console.error('Error en asignar permisos por clinica.', error);
+//             reject(error);
+//         }
+//     });
+// };

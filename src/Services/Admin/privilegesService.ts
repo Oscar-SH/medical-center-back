@@ -1,35 +1,26 @@
-import { Knex } from 'knex';
-import moment from 'moment';
 import { knexMedical } from '../../Utils/dbKnex';
-import { RegistroBitacora } from '../../Classes/bitacoraClass';
-import { ParamsUserInterface, PrivilegesInterface, PrivilegesParamsInterface, ResponseUserTableInterface } from '../../Interfaces';
+import { setClinicPermissions, setClinicRoles } from './Privileges';
+import { PrivilegesInterface, PrivilegesParamsInterface } from '../../Interfaces';
 
-export const findAllUsersQuery = ({
-    text = '',
-    page = '1',
-    page_size = '10',
-    isActives = 'true'
-}: ParamsUserInterface) => {
-    return new Promise<ResponseUserTableInterface>(async (resolve, reject) => {
+interface Props { id_user: string; }
+
+export const getPrivilegesUserQuery = ({ id_user = '-1' }: Props) => {
+    return new Promise<PrivilegesParamsInterface[]>(async (resolve, reject) => {
         try {
-            const lastRow = (parseInt(page) - 1) * parseInt(page_size);
-            let query = knexMedical('users as u')
-                .leftJoin('cmp_doctors as d', 'u.id_doctor', '=', 'd.id')
-                .leftJoin('cmp_persons as p', 'd.id_person', '=', 'p.id')
-                .select(
-                    'u.*',
-                    knexMedical.raw('CONCAT_WS(" ", p.first_surname, p.second_surname, p.fullname) as persona'),
-                    'd.matricula'
-                );
-            if (text.length > 0) {
-                query = query.where(knexMedical.raw("CONCAT_WS(' ', p.second_surname, p.first_surname, p.fullname)"), 'LIKE', `%${text}%`)
-                    .orWhere('d.matricula', 'LIKE', `%${text}%`)
-                    .orWhere('u.email', 'LIKE', `%${text}%`);
+            let privileges: PrivilegesParamsInterface[] = []
+            let query = knexMedical('user_clinic_roles').where('id_user', '=', parseInt(id_user));
+            const clinics = await query.clone().select('id_clinic').whereNull('deleted_at').groupBy('id_clinic');
+
+            for (const clinic of clinics) {
+                let roles = await query.clone().where('id_clinic', '=', clinic.id_clinic).whereNull('deleted_at').groupBy('id_role');
+                let permissions = await knexMedical('user_clinic_permissions').where({ id_user: parseInt(id_user), id_clinic: clinic.id_clinic })
+                    .whereNull('deleted_at').groupBy('id_permission');
+                roles = roles.map((role) => role.id_role);
+                permissions = permissions.map((permission) => permission.id_permission);
+                privileges.push({ clinic: clinic.id_clinic, permissions, roles });
             }
-            query = isActives === 'true' ? query.whereNull('u.deleted_at') : query.whereNotNull('u.deleted_at');
-            const [count] = await query.clone().count('u.id as total');
-            const data = await query.clone().limit(parseInt(page_size)).offset(lastRow);
-            resolve({ data, count: parseInt(String(count.total)) });
+
+            resolve(privileges);
         } catch (error) {
             console.error(error);
             reject(error);
@@ -37,51 +28,28 @@ export const findAllUsersQuery = ({
     });
 };
 
-export const setClinicRoles = (data: PrivilegesParamsInterface, jwt: string) => {
+export const setPrivilegesUserQuery = (data: PrivilegesInterface, jwt: string) => {
     return new Promise(async (resolve, reject) => {
         try {
-            const exist = knexMedical('')
-        } catch (error) {
-            console.error(error);
-            reject(error);
-        }
-    });
-};
+            let last_clinics = await knexMedical('user_clinic_roles').select('id_clinic').where('id_user', '=', data.id_user).groupBy('id_clinic');
 
-export const createClinicRoles = (data: PrivilegesInterface, jwt: string) => {
-    return new Promise(async (resolve, reject) => {
-        try {
-            let new_id = 0;
-            await knexMedical.transaction(async (trx: Knex.Transaction) => {
-                try {
-                    [new_id] = await trx('users').insert({
-                        // username: newuser.username,
-                        // email: data.email,
-                        // password: newuser.password.hash,
-                        // id_doctor: doctor.id,
-                        // created_at: moment().format('YYYY-MM-DD HH:mm:ss'),
-                        // updated_at: moment().format('YYYY-MM-DD HH:mm:ss')
-                    }).transacting(trx);
-                } catch (error) {
-                    console.error(error, 'Error en create user.');
-                    throw error;
+            for (const last of last_clinics) {
+                const exist = data.privileges.find((p) => p.clinic === last.id_clinic);
+                if (!exist) {
+                    await setClinicRoles(data.id_user, { clinic: last.id_clinic, permissions: [], roles: [] }, jwt);
+                    await setClinicPermissions(data.id_user, { clinic: last.id_clinic, permissions: [], roles: [] }, jwt);
+                } else {
+                    await setClinicRoles(data.id_user, exist, jwt);
+                    await setClinicPermissions(data.id_user, exist, jwt);
                 }
-            });
-            const bitacora = new RegistroBitacora('USUARIOS', 'CREAR USUARIO', `USUARIO CREADO CON ID ${new_id}`, jwt);
-            await bitacora.insert();
-            resolve(bitacora);
-        } catch (error) {
-            console.error(error);
-            reject(error);
-        }
-    });
-};
+            }
 
-export const setPrivilegesUser = (data: PrivilegesInterface, jwt: string) => {
-    return new Promise(async (resolve, reject) => {
-        try {
-            for (const clinic of data.privileges) {
-                await setClinicRoles(clinic, jwt);
+            for (const privilege of data.privileges) {
+                const exist = last_clinics.find((l) => l.id_clinic === privilege.clinic);
+                if (!exist) {
+                    await setClinicRoles(data.id_user, privilege, jwt);
+                    await setClinicPermissions(data.id_user, privilege, jwt);
+                }
             }
             resolve(true);
         } catch (error) {
@@ -90,25 +58,3 @@ export const setPrivilegesUser = (data: PrivilegesInterface, jwt: string) => {
         }
     });
 };
-
-// export const updateUserQuery = (data: UpdateUserInterface, jwt: string) => {
-//     return new Promise(async (resolve, reject) => {
-//         try {
-//             await knexMedical.transaction(async (trx: Knex.Transaction) => {
-//                 try {
-//                     await trx('users').where('id', '=', data.id).update({
-//                         email: data.email,
-//                         updated_at: moment().format('YYYY-MM-DD HH:mm:ss')
-//                     }).transacting(trx);
-//                 } catch (error) {
-//                     console.error(error, 'Error en update user.');
-//                     throw error;
-//                 }
-//             });
-//             resolve('OK');
-//         } catch (error) {
-//             console.error(error);
-//             reject(error);
-//         }
-//     });
-// };

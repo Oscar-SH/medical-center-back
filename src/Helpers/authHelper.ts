@@ -28,9 +28,7 @@ export const validateToken = (token: string) => {
 
 export const verifyToken = (req: Request, res: Response, next: NextFunction) => {
     const token = req.header('x-access-jwt');
-    if (!token) {
-        return res.status(401).json({ message: 'Acceso denegado, token requerido' });
-    }
+    if (!token) return res.status(401).json({ message: 'Acceso denegado, token requerido' });
     try {
         const decoded = validateToken(token);
         req.body.user = decoded;
