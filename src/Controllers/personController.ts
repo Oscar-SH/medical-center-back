@@ -1,0 +1,128 @@
+import { Response } from 'express';
+import { CustomRequest, ParamsPersonInterface, PersonInterface, UpdatePersonInterface } from '../Interfaces';
+import { findAllPersonsQuery, findOnePersonQuery, createPersonQuery, updatePersonQuery, changeStatusPersonQuery } from '../Services';
+
+export const findAllPersonsController = async (req: CustomRequest<ParamsPersonInterface, {}>, res: Response) => {
+    try {
+        const params = req.query;
+        const { count, data } = await findAllPersonsQuery(params);
+
+        return res.status(200).json({
+            ok: true,
+            msg: "Find all persons was successfully.",
+            data,
+            count
+        });
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({
+            ok: false,
+            error: error,
+            msg: "Can't find all persons."
+        });
+    }
+};
+
+export const findOnePersonController = async (req: CustomRequest<{ id: string }, {}>, res: Response) => {
+    try {
+        const { id } = req.params;
+        const response = await findOnePersonQuery(parseInt(id));
+
+        return res.status(200).json({
+            ok: true,
+            msg: "Find person was successfully.",
+            data: response
+        });
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({
+            ok: false,
+            error: error,
+            msg: "Can't find person."
+        });
+    }
+};
+
+export const createPersonController = async (req: CustomRequest<{}, PersonInterface>, res: Response) => {
+    try {
+        const body = req.body;
+        const jwt = req.header('x-access-jwt') ?? '';
+        const response = await createPersonQuery(body, jwt);
+
+        return res.status(200).json({
+            ok: true,
+            msg: "Person created was successfully.",
+            data: response
+        });
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({
+            ok: false,
+            error: error,
+            msg: "Error to create person."
+        });
+    }
+};
+
+export const updatePersonController = async (req: CustomRequest<{}, UpdatePersonInterface>, res: Response) => {
+    try {
+        const body = req.body;
+        const jwt = req.header('x-access-jwt') ?? '';
+        const response = await updatePersonQuery(body, jwt);
+
+        return res.status(200).json({
+            ok: true,
+            msg: "Person updated was successfully.",
+            data: response
+        });
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({
+            ok: false,
+            error: error,
+            msg: "Error to update person."
+        });
+    }
+};
+
+export const deletePersonController = async (req: CustomRequest<{}, { id: number }>, res: Response) => {
+    try {
+        const { id } = req.body;
+        const jwt = req.header('x-access-jwt') ?? '';
+        const response = await changeStatusPersonQuery(id, jwt, true);
+
+        return res.status(200).json({
+            ok: true,
+            msg: "Person deleted was successfully.",
+            data: response
+        });
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({
+            ok: false,
+            error: error,
+            msg: "Error to delete person."
+        });
+    }
+};
+
+export const restorePersonController = async (req: CustomRequest<{}, { id: number }>, res: Response) => {
+    try {
+        const { id } = req.body;
+        const jwt = req.header('x-access-jwt') ?? '';
+        const response = await changeStatusPersonQuery(id, jwt, false);
+
+        return res.status(200).json({
+            ok: true,
+            msg: "Person restored was successfully.",
+            data: response
+        });
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({
+            ok: false,
+            error: error,
+            msg: "Error to restore person."
+        });
+    }
+};
