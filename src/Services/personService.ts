@@ -15,6 +15,7 @@ export const findAllPersonsQuery = ({
             const lastRow = (parseInt(page) - 1) * parseInt(page_size);
             let query = knexMedical('cmp_persons as p')
                 .leftJoin('cmp_doctors as d', 'p.id', '=', 'd.id_person')
+                // .leftJoin('cmp_doctors as d', 'p.id', '=', 'd.id_person')
                 .select('p.*', knexMedical.raw('d.id as id_doctor'));
             let query_count = knexMedical('cmp_persons as p').select();
 

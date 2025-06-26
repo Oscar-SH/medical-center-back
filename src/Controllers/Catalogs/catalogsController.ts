@@ -12,7 +12,7 @@ export const getCatStatesController = async (_req: CustomRequest<{}, {}>, res: R
             data
         });
     } catch (error) {
-        console.log(error);
+        console.error(error);
         return res.status(500).json({
             ok: false,
             error: error,
@@ -31,7 +31,7 @@ export const getCatMunicipalitiesController = async (req: CustomRequest<{ id_sta
             data
         });
     } catch (error) {
-        console.log(error);
+        console.error(error);
         return res.status(500).json({
             ok: false,
             error: error,

@@ -44,7 +44,8 @@ class Server {
         // this.app.use('/clinics', clinicsRouter);
         this.app.use('/clinics', verifyToken, clinicsRouter);
         this.app.use('/doctors', verifyToken, doctorsRouter);
-        this.app.use('/permissions', verifyToken, permissionsRouter);
+        this.app.use('/permissions', permissionsRouter);
+        // this.app.use('/permissions', verifyToken, permissionsRouter);
     };
 
     execute() {

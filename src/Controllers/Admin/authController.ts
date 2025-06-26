@@ -13,7 +13,7 @@ export const userInfoController = async (req: CustomRequest<{}, {}>, res: Respon
             data: response
         });
     } catch (error) {
-        console.log(error);
+        console.error(error);
         return res.status(500).json({
             ok: false,
             error: error,
@@ -33,7 +33,7 @@ export const loginController = async (req: CustomRequest<{}, LoginInterface>, re
             data: response
         });
     } catch (error) {
-        console.log(error);
+        console.error(error);
         return res.status(500).json({
             ok: false,
             error: error,

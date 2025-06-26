@@ -112,3 +112,35 @@ export const deletePermissionQuery = (id: number, jwt: string) => {
         }
     });
 };
+
+export const getPermissionsUserQuery = (id: number = -1, id_clinic: number = -1) => {
+    return new Promise<{ permissions: string[]; roles: string[]; }>(async (resolve, reject) => {
+        try {
+            const roles = await knexMedical('user_clinic_roles as ucr')
+                .leftJoin('roles as r', 'ucr.id_role', '=', 'r.id')
+                .select('ucr.id_role', 'r.name')
+                .where('ucr.id_user', '=', id).where('ucr.id_clinic', '=', id_clinic).whereNull('ucr.deleted_at')
+                .groupBy('ucr.id_role');
+
+            const aux_roles = roles.map(role => role.id_role);
+
+            const permissions_roles = (await knexMedical('role_permissions as rp')
+                .leftJoin('permissions as p', 'rp.id_permission', '=', 'p.id')
+                .select('p.name').whereNull('rp.deleted_at')
+                .whereIn('rp.id_role', aux_roles)).map(p => p.name);
+
+            const permissions = (await knexMedical('user_clinic_permissions as ucp')
+                .leftJoin('permissions as p', 'ucp.id_permission', '=', 'p.id')
+                .where('ucp.id_user', '=', id).where('ucp.id_clinic', '=', id_clinic).whereNull('ucp.deleted_at')
+                .groupBy('p.name')).map(p => p.name);
+
+            resolve({
+                permissions: [...new Set([...permissions_roles, ...permissions])],
+                roles: roles.map(role => role.name)
+            });
+        } catch (error) {
+            console.error(error, 'Error al obtener permisos.');
+            reject(error);
+        }
+    });
+};

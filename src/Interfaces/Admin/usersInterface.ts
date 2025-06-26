@@ -1,4 +1,4 @@
-import { DoctorInterface } from "..";
+import { CatClinicsInterface, DoctorInterface, PermissionInterface } from "..";
 
 export interface UserInterface {
     email: string;
@@ -6,13 +6,13 @@ export interface UserInterface {
     id_doctor?: number;
 }
 
-export interface CreateUserInterface extends UserInterface, DoctorInterface{}
+export interface CreateUserInterface extends UserInterface, DoctorInterface { }
 
 export interface UpdateUserInterface extends UserInterface {
     id: number;
 }
 
-export interface PasswordInterface{
+export interface PasswordInterface {
     hash: string;
     plain: string;
 }
@@ -34,14 +34,20 @@ export interface RowUserInterface extends UserInterface {
     matricula: number;
 }
 
-export interface ParamsUserInterface{
+export interface ParamsUserInterface {
     page: string;
     text: string;
     isActives: string;
     page_size: string;
 }
 
-export interface ResponseUserTableInterface{
+export interface ResponseUserTableInterface {
     count: number;
     data: RowUserInterface[];
+}
+
+
+export interface InfoUserInterface extends UserInterface {
+    clinics: CatClinicsInterface[];
+    permissions: PermissionInterface[];
 }

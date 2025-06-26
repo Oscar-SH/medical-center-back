@@ -14,7 +14,7 @@ export const findAllRolesController = async (req: CustomRequest<ParamsRoleInterf
             count
         });
     } catch (error) {
-        console.log(error);
+        console.error(error);
         return res.status(500).json({
             ok: false,
             error: error,
@@ -34,7 +34,7 @@ export const findOneRoleController = async (req: CustomRequest<{}, {}>, res: Res
             data: response
         });
     } catch (error) {
-        console.log(error);
+        console.error(error);
         return res.status(500).json({
             ok: false,
             error: error,
@@ -55,7 +55,7 @@ export const createRoleController = async (req: CustomRequest<{}, RoleInterface>
             data: response
         });
     } catch (error) {
-        console.log(error);
+        console.error(error);
         return res.status(500).json({
             ok: false,
             error: error,
@@ -76,7 +76,7 @@ export const updateRoleController = async (req: CustomRequest<{}, UpdateRoleInte
             data: response
         });
     } catch (error) {
-        console.log(error);
+        console.error(error);
         return res.status(500).json({
             ok: false,
             error: error,
@@ -97,7 +97,7 @@ export const deleteRoleController = async (req: CustomRequest<{}, { id: number }
             data: response
         });
     } catch (error) {
-        console.log(error);
+        console.error(error);
         return res.status(500).json({
             ok: false,
             error: error,

@@ -14,7 +14,7 @@ export const findAllPersonsController = async (req: CustomRequest<ParamsPersonIn
             count
         });
     } catch (error) {
-        console.log(error);
+        console.error(error);
         return res.status(500).json({
             ok: false,
             error: error,
@@ -34,7 +34,7 @@ export const findOnePersonController = async (req: CustomRequest<{ id: string },
             data: response
         });
     } catch (error) {
-        console.log(error);
+        console.error(error);
         return res.status(500).json({
             ok: false,
             error: error,
@@ -55,7 +55,7 @@ export const createPersonController = async (req: CustomRequest<{}, PersonInterf
             data: response
         });
     } catch (error) {
-        console.log(error);
+        console.error(error);
         return res.status(500).json({
             ok: false,
             error: error,
@@ -76,7 +76,7 @@ export const updatePersonController = async (req: CustomRequest<{}, UpdatePerson
             data: response
         });
     } catch (error) {
-        console.log(error);
+        console.error(error);
         return res.status(500).json({
             ok: false,
             error: error,
@@ -97,7 +97,7 @@ export const deletePersonController = async (req: CustomRequest<{}, { id: number
             data: response
         });
     } catch (error) {
-        console.log(error);
+        console.error(error);
         return res.status(500).json({
             ok: false,
             error: error,
@@ -118,7 +118,7 @@ export const restorePersonController = async (req: CustomRequest<{}, { id: numbe
             data: response
         });
     } catch (error) {
-        console.log(error);
+        console.error(error);
         return res.status(500).json({
             ok: false,
             error: error,

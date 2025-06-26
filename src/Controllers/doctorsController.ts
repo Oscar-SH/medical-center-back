@@ -14,7 +14,7 @@ export const findAllDoctorsController = async (req: CustomRequest<ParamsDoctorIn
             count
         });
     } catch (error) {
-        console.log(error);
+        console.error(error);
         return res.status(500).json({
             ok: false,
             error: error,
@@ -34,7 +34,7 @@ export const findOneDoctorController = async (req: CustomRequest<{ id: string },
             data: response
         });
     } catch (error) {
-        console.log(error);
+        console.error(error);
         return res.status(500).json({
             ok: false,
             error: error,
@@ -55,7 +55,7 @@ export const updateDoctorController = async (req: CustomRequest<{}, UpdateDoctor
             data: response
         });
     } catch (error) {
-        console.log(error);
+        console.error(error);
         return res.status(500).json({
             ok: false,
             error: error,

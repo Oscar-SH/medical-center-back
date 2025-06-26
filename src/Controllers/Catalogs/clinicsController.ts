@@ -14,7 +14,7 @@ export const getAllClinicsQueryController = async (req: CustomRequest<ParamsCatC
             count
         });
     } catch (error) {
-        console.log(error);
+        console.error(error);
         return res.status(500).json({
             ok: false,
             error: error,
@@ -33,7 +33,7 @@ export const findClinicController = async (req: CustomRequest<{}, {}>, res: Resp
             data
         });
     } catch (error) {
-        console.log(error);
+        console.error(error);
         return res.status(500).json({
             ok: false,
             error: error,
@@ -54,7 +54,7 @@ export const createClinicController = async (req: CustomRequest<{}, CatClinicsIn
             data: response
         });
     } catch (error) {
-        console.log(error);
+        console.error(error);
         return res.status(500).json({
             ok: false,
             error: error,
@@ -75,7 +75,7 @@ export const updateClinicController = async (req: CustomRequest<{}, UpdateCatCli
             data: response
         });
     } catch (error) {
-        console.log(error);
+        console.error(error);
         return res.status(500).json({
             ok: false,
             error: error,
@@ -96,7 +96,7 @@ export const deleteClinicController = async (req: CustomRequest<{}, { id: number
             data: response
         });
     } catch (error) {
-        console.log(error);
+        console.error(error);
         return res.status(500).json({
             ok: false,
             error: error,

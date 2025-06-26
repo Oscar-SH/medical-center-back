@@ -67,12 +67,13 @@ export const createDoctorQuery = (data: DoctorInterface, jwt: string) => {
                         updated_at: moment().format('YYYY-MM-DD')
                     }).transacting(trx);
                 } catch (error) {
-                    trx.rollback()
-                    console.log(error);
+                    console.log(error, 'Error al crear medico.');
+                    throw error;
                 }
             });
             const response = await findOneDoctorQuery(new_id);
-            // new RegistroBitacora('CREAR DOCTOR', `NUEVO id: ${response.id}`, id_usuario).insert();
+            const bitacora = new RegistroBitacora('MEDICOS', 'CREAR MEDICO', `MEDICO CREADO CON ID ${new_id}`, jwt);
+            await bitacora.insert();
             resolve(response);
         } catch (error) {
             console.error(error);
@@ -84,21 +85,21 @@ export const createDoctorQuery = (data: DoctorInterface, jwt: string) => {
 export const updateDoctorQuery = (data: UpdateDoctorInterface, jwt: string) => {
     return new Promise(async (resolve, reject) => {
         try {
-            let new_id = 0;
             await knexMedical.transaction(async (trx: Knex.Transaction) => {
                 try {
-                    console.log(data);
-                    new_id = await trx('cmp_doctors').where('id', '=', data.id).update({
+                    await trx('cmp_doctors').where('id', '=', data.id).update({
                         observations: data.observations ?? null,
                         professional_license: data.professional_license,
                         updated_at: moment().format('YYYY-MM-DD')
                     }).transacting(trx);
                 } catch (error) {
-                    trx.rollback();
-                    console.log(error);
+                    console.log(error, 'Error al acualizar medico.');
+                    throw error;
                 }
             });
-            const response = await findOneDoctorQuery(new_id);
+            const bitacora = new RegistroBitacora('MEDICOS', 'EDITAR MEDICO', `MEDICO EDITADO CON ID ${data.id}`, jwt);
+            await bitacora.insert();
+            const response = await findOneDoctorQuery(data.id);
             resolve(response);
         } catch (error) {
             console.error(error);
@@ -117,10 +118,12 @@ export const deleteDoctorQuery = (id: number, jwt: string) => {
                             deleted_at: moment().format('YYYY-MM-DD HH:mm:ss')
                         }).transacting(trx);
                 } catch (error) {
-                    trx.rollback();
-                    console.log(error);
+                    console.log(error, 'Error al acualizar medico.');
+                    throw error;
                 }
             });
+            const bitacora = new RegistroBitacora('MEDICOS', 'ELIMINAR MEDICO', `MEDICO ELIMINADO CON ID ${id}`, jwt);
+            await bitacora.insert();
             const response = await findOneDoctorQuery(id);
             resolve(response);
         } catch (error) {

@@ -3,8 +3,9 @@ import moment from 'moment';
 import { findOneUserQuery } from '..';
 import { knexMedical } from '../../Utils/dbKnex';
 import { validatePassword } from '../../Helpers/createUserProps';
+import { infoUserDashboard } from '../Dashboard/dashboarServices';
 import { generateToken, decodeToken, validateToken } from '../../Helpers/authHelper';
-import { InsertTokenInterface, LoginInterface, RowUserInterface } from '../../Interfaces';
+import { InfoUserInterface, InsertTokenInterface, LoginInterface } from '../../Interfaces';
 
 export const insertTokenQuery = ({ id = 0, jwt = '' }: InsertTokenInterface) => {
     return new Promise(async (resolve, reject) => {
@@ -62,11 +63,11 @@ export const logoutQuery = (id: number) => {
 export const verifyInLine = (jwt: string) => {
     return new Promise(async (resolve, reject) => {
         try {
-            let response: RowUserInterface | null = null;
+            let response: InfoUserInterface | null = null;
             const jwt_decoded = decodeToken(jwt);
             const is_active = validateToken(jwt);
             if (is_active && typeof (is_active) === 'object') {
-                response = await findOneUserQuery(is_active.id);
+                response = await infoUserDashboard(is_active.id);
             } else if (!is_active && (jwt_decoded && typeof (jwt_decoded) === 'object')) {
                 await logoutQuery(jwt_decoded.id);
             }

@@ -14,7 +14,7 @@ export const findAllUsersController = async (req: CustomRequest<ParamsUserInterf
             count
         });
     } catch (error) {
-        console.log(error);
+        console.error(error);
         return res.status(500).json({
             ok: false,
             error: error,
@@ -34,7 +34,7 @@ export const findOneUserController = async (req: CustomRequest<{ id_usuario: str
             data: response
         });
     } catch (error) {
-        console.log(error);
+        console.error(error);
         return res.status(500).json({
             ok: false,
             error: error,
@@ -55,7 +55,7 @@ export const createUserController = async (req: CustomRequest<{}, CreateUserInte
             data: response
         });
     } catch (error) {
-        console.log(error);
+        console.error(error);
         return res.status(500).json({
             ok: false,
             error: error,
@@ -76,7 +76,7 @@ export const updateUserController = async (req: CustomRequest<{}, UpdateUserInte
             data: response
         });
     } catch (error) {
-        console.log(error);
+        console.error(error);
         return res.status(500).json({
             ok: false,
             error: error,
@@ -97,7 +97,7 @@ export const deleteUserController = async (req: CustomRequest<{}, { id: number }
             data: response
         });
     } catch (error) {
-        console.log(error);
+        console.error(error);
         return res.status(500).json({
             ok: false,
             error: error,
@@ -118,7 +118,7 @@ export const resetPasswordController = async (req: CustomRequest<{}, { id: numbe
             data: response
         });
     } catch (error) {
-        console.log(error);
+        console.error(error);
         return res.status(500).json({
             ok: false,
             error: error,

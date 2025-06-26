@@ -25,8 +25,8 @@ export class RegistroBitacora {
     private decodeJWT(token: string) {
         try {
             return decodeToken(token) as { id: number };
-        } catch (err) {
-            console.error('Error al decodificar JWT:', err);
+        } catch (error) {
+            console.error('Error al decodificar JWT:', error);
             throw new Error('Token inválido');
         }
     }
